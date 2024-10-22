@@ -62,18 +62,18 @@ class CardTableViewCell: UITableViewCell {
         return label
     }()
     
-    var assetsCollectionView: AssetsCollectionView = {
-        let collectionView = AssetsCollectionView()
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+    lazy var assetsArrangedViews: BasicArrangedViews = {
+        let view = BasicArrangedViews()
+        view.translatesAutoresizingMaskIntoConstraints = false
         
-        return collectionView
+        return view
     }()
     
-    lazy var benchmarksCollectionView: BenchmarksCollectionView = {
-        let collectionView = BenchmarksCollectionView()
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+    lazy var benchmarksArrangedViews: BasicArrangedViews = {
+        let view = BasicArrangedViews()
+        view.translatesAutoresizingMaskIntoConstraints = false
         
-        return collectionView
+        return view
     }()
 
     weak var delegate: CardTableViewCellDelegate?
@@ -88,40 +88,30 @@ class CardTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func systemLayoutSizeFitting(_ targetSize: CGSize) -> CGSize {
-        assetsCollectionView.layoutIfNeeded()
-        assetsCollectionView.frame = CGRect(x: 0, y: 0, width: targetSize.width , height: 1)
-        return assetsCollectionView.collectionViewLayout.collectionViewContentSize
-    }
-    
     // MARK: - Methods
     func configure(with card: Card) {
         title.text = card.title
         subtitle.text = card.subtitle
         sourceNew.text = card.sourceNew
         
-        configureAssetsCollectionView(with: card.assets)
-        configurebenchmarksCollectionView(with: card.benchmarks)
+        configureAssets(with: card.assets)
+        configureBenchmarks(with: card.benchmarks)
     }
     
-    private func configureAssetsCollectionView(with model: [Asset]?) {
+    private func configureAssets(with model: [Asset]?) {
         if let assets = model {
-            assetsCollectionView.configure(with: assets)
+            assetsArrangedViews.titlesOfElements = assets.compactMap { $0.stockName }
             
-            containerStackView.addArrangedSubview(assetsCollectionView)
-            
-//            assetsCollectionView.updateConstraints()
-//            delegate?.updateTableView()
-            
-            contentView.layoutIfNeeded()
+            containerStackView.addArrangedSubview(assetsArrangedViews)
         }
     }
     
-    private func configurebenchmarksCollectionView(with model: [Benchmark]?) {
+    private func configureBenchmarks(with model: [Benchmark]?) {
         if let benchmarks = model {
-            benchmarksCollectionView.configure(with: benchmarks)
+            benchmarksArrangedViews.elementsBackgroundColor = .systemGreen
+            benchmarksArrangedViews.titlesOfElements = benchmarks.compactMap { "\($0.title) \($0.rentability)%" }
             
-            containerStackView.addArrangedSubview(benchmarksCollectionView)
+            containerStackView.addArrangedSubview(benchmarksArrangedViews)
         }
     }
 }
@@ -160,9 +150,6 @@ extension CardTableViewCell {
             containerStackView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 8),
             containerStackView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -8),
             containerStackView.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -8),
-            
-            assetsCollectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 22),
-            benchmarksCollectionView.heightAnchor.constraint(greaterThanOrEqualToConstant: 22)
         ])
     }
 }
